@@ -1,2 +1,4 @@
-# Project Exp
-[Node.js ~ OpenSource]  VS Code Extension for quickly switching folders via the Explorer UI
+## Folder Expo
+Explorer UI based VS Code Extension for quickly switching between folders.
+
+## Video Demonstration
