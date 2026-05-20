@@ -13,7 +13,7 @@
 
 Save the json items as
 
-  Key : FolderName (last dir in full path name)  -  Value : Full path name to the driectory
+  Key : FolderName (last dir in full path name)  -  Value : Full path name to the directory
 
 */
 
@@ -22,26 +22,59 @@ Save the json items as
 
 
 //[Global]
-//---------------------------------
+//-------------------------------------------------------------------------------------------------------------------------------------
 
   //Reqs
     const vscode = require("vscode");
     const fs = require("fs");
+    const os = require("os");
+    const path = require("path");
+
+  //Constants
+    const userName = os.userInfo().username;
+    const userJson = path.join("C:", "Users", userName, "AppData", "Roaming", "Code", "User", "globalStorage", "UserDirectoryData.json");
+    var directoryMap = new Map();
 
   //Variables
-    var currentFolder = "";
-//---------------------------------
+    var currentFolderPath = "";
+    var allDirectoryNames = [];
+//-------------------------------------------------------------------------------------------------------------------------------------
 
 
 
 //[Allocations]
 //-------------------------------------------------------------------------------------------------------------------------------
 
-  //Search for a .json containing any saved directories the user has
-    const userJson = path.join("C:", "Users", userName, "AppData", "Roaming", "Code", "User", "globalStorage", "UserProjectData.json");
+  //Search for the UserDirectoryData.json containing any saved directories the user has
 
-  //
+  //[JSON exists, continue to collect data]
+    if(fs.existsSync(userJson)){
 
+console.log("File exists!!");
+
+      //Collect Raw data & then convert to JSON
+        const jsonData = JSON.parse(fs.readFileSync(userJson, "utf-8"));
+      
+      //Parse the JSON and collect all of the Directory names!
+        directoryMap = new Map(Object.entries(jsonData));
+
+      //Collect all of the directory names we can from the loaded data
+        for(const dirKey of directoryMap.keys()){ allDirectoryNames.push(dirKey) 
+
+//[DEBUG!!]
+
+//See what the value for the key looks like
+console.log("Key name: " + dirKey);
+console.log("Value of the key: " + directoryMap.get(dirKey));
+
+}
+
+
+
+    }
+
+  //Else, create the JSON (everytime we save a directory we will use a simplified name (the last dir of the path))
+    else{ fs.writeFileSync(userJson, ""); }
 
 //-------------------------------------------------------------------------------------------------------------------------------
 
@@ -75,13 +108,31 @@ Save the json items as
 
 
               //First folder in the current workspace
-                currentFolder = folders[0].uri.fsPath;
-
-              //Save the directory to the extension
+                currentFolderPath = folders[0].uri.fsPath;
 
 
-              //Also save the folder to a .json that we will load & pull directories from everytime we load the extension/the dropdown item list loads!!
-                //Code here..
+              //Create a new entry in the map and write the data to a json
+                directoryMap.set(path.basename(currentFolderPath), currentFolderPath);
+
+
+              //Update the folder/directory list items for the extension object
+                allDirectoryNames.push(path.basename(currentFolderPath));
+
+
+//[LEFT OFF HERE!!]
+
+              //[Save data to: UserDirectoryData.json ]
+                if(fs.existsSync(userJson)){
+  
+                  //Convert Map -> Object
+                    const pathObject = Object.fromEntries(directoryMap);
+
+                  //Write the JSON file data
+                    fs.writeFileSync(
+                        userJson,
+                        JSON.stringify(pathObject, null, 4)
+                    );
+                }
 
 
               //Refresh the provider to display the new folder saved!
@@ -89,57 +140,32 @@ Save the json items as
 
 
               //Inform the user of their choice
-                vscode.window.showInformationMessage(`Saving Directory to List: [${currentFolder}]`);
+                vscode.window.showInformationMessage(`Saving Directory to List: [${currentFolderPath}]`);
 
             }),
 
     
           //[Dropdown - Select Folder/Directory]
-            vscode.commands.registerCommand("directoryChange", (item) => {
+            vscode.commands.registerCommand("directoryChange", (directoryKeyName) => {
 
-              //Apply the new folder for the user's current window
-                //Code here..
-
-
-              //Inform the user of their choice
-                vscode.window.showInformationMessage(`Switching to Folder: [${item}]`);
-            }),
-
-
-          //[Dropdown - Refresh for new Folders being added to the list]
-            vscode.commands.registerCommand("quickSelect.leafClicked0", (item) => {
-
-              
-              //Update the folder/directory list items for the extension object
-                allDirectoryNames.push(currentFolder);
+              //Use the map to find the folder path connected to the directory's name
+                directoryPath = directoryMap.get(directoryKeyName);
 
 
 //[DEBUG!!]
-//  Name is working
-console.log(directoryProvider.allDirectoryNames.pop());                
-
-//Left off with an issue refreshing this command everytime I hit the "saveCurrentDirectory"
-//    i think i can just do an action call from there too???
+console.log("Selected Key Name: " + directoryKeyName);
+console.log("Selected Value Name: " + directoryPath);
 
 
+              //Execute a command to change the user's window
+                vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(directoryPath), { forceNewWindow: false } );
 
-              //Refresh the extension object / Explorer - UI Panel
-                directoryProvider.refresh();
-
+              //Inform the user of their choice
+                vscode.window.showInformationMessage(`Switching to Folder: [${directoryKeyName}]`);
             })
 
         )
     }
-
-//-----------------------------------------------------------------------------------------------------------------------------
-
-
-//[Author-Defined Functions]
-//-----------------------------------------------------------------------------------------------------------------------------
-
-  //Add a new 
-
-
 
 //-----------------------------------------------------------------------------------------------------------------------------
 
@@ -181,16 +207,6 @@ console.log(directoryProvider.allDirectoryNames.pop());
 
                   //Input Box for user's to manually enter a folder via it's directory
                     new Button("Save Current Folder Open", "Click to Run", "saveCurrentDirectory"),
-
-
-                  //Button to Submit the directory the user has written to the input box (do an existence check first!)
-                    //Code here
-
-
-                  //Button to Add the currently opened directory to the list user has written to the input box
-                    //Code here
-
-
 
                   //[Select Folder Drop Down List]
                     ...this.dropdowns.map( d => new DropdownItem(d.label, d.children) )
