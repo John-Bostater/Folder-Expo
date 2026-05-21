@@ -50,8 +50,6 @@ Save the json items as
   //[JSON exists, continue to collect data]
     if(fs.existsSync(userJson)){
 
-console.log("File exists!!");
-
       //Collect Raw data & then convert to JSON
         const jsonData = JSON.parse(fs.readFileSync(userJson, "utf-8"));
       
@@ -59,17 +57,7 @@ console.log("File exists!!");
         directoryMap = new Map(Object.entries(jsonData));
 
       //Collect all of the directory names we can from the loaded data
-        for(const dirKey of directoryMap.keys()){ allDirectoryNames.push(dirKey) 
-
-//[DEBUG!!]
-
-//See what the value for the key looks like
-console.log("Key name: " + dirKey);
-console.log("Value of the key: " + directoryMap.get(dirKey));
-
-}
-
-
+        for(const dirKey of directoryMap.keys()){ allDirectoryNames.push(dirKey) }
 
     }
 
@@ -110,37 +98,35 @@ console.log("Value of the key: " + directoryMap.get(dirKey));
               //First folder in the current workspace
                 currentFolderPath = folders[0].uri.fsPath;
 
-
-              //Create a new entry in the map and write the data to a json
-                directoryMap.set(path.basename(currentFolderPath), currentFolderPath);
-
-
               //Update the folder/directory list items for the extension object
                 allDirectoryNames.push(path.basename(currentFolderPath));
 
 
-//[LEFT OFF HERE!!]
-
               //[Save data to: UserDirectoryData.json ]
-                if(fs.existsSync(userJson)){
-  
+              //  Ensure file exists & that we are NOT writing a duplicate
+                if(fs.existsSync(userJson) && !directoryMap.has(path.basename(currentFolderPath))){
+
+                  //Create a new entry in the map and write the data to a json
+                    directoryMap.set(path.basename(currentFolderPath), currentFolderPath);
+
                   //Convert Map -> Object
                     const pathObject = Object.fromEntries(directoryMap);
 
                   //Write the JSON file data
-                    fs.writeFileSync(
-                        userJson,
-                        JSON.stringify(pathObject, null, 4)
-                    );
+                    fs.writeFileSync(userJson, JSON.stringify(pathObject, null, 4));
+
+                  //Refresh the provider to display the new folder saved!
+                    directoryProvider.refresh();
+
+                  //Inform the user of their choice
+                    vscode.window.showInformationMessage(`Saving Directory to List: [${currentFolderPath}]`);
+
+                  //Return
+                    return;
                 }
 
-
-              //Refresh the provider to display the new folder saved!
-                directoryProvider.refresh();
-
-
-              //Inform the user of their choice
-                vscode.window.showInformationMessage(`Saving Directory to List: [${currentFolderPath}]`);
+              //Else, the user is trying to save the same dir twice!, inform them
+                vscode.window.showWarningMessage(`Current Folder is already Saved: [${currentFolderPath}]`);
 
             }),
 
@@ -150,12 +136,6 @@ console.log("Value of the key: " + directoryMap.get(dirKey));
 
               //Use the map to find the folder path connected to the directory's name
                 directoryPath = directoryMap.get(directoryKeyName);
-
-
-//[DEBUG!!]
-console.log("Selected Key Name: " + directoryKeyName);
-console.log("Selected Value Name: " + directoryPath);
-
 
               //Execute a command to change the user's window
                 vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(directoryPath), { forceNewWindow: false } );
@@ -264,7 +244,7 @@ console.log("Selected Value Name: " + directoryPath);
 
 
             //[Add Directory Button]
-              if(buttonName == "Save Directory"){ this.iconPath = new vscode.ThemeIcon("plus"); }
+              if(buttonName == "Save Current Folder Open"){ this.iconPath = new vscode.ThemeIcon("save"); }
 
           //===============================================================================================
 
@@ -301,7 +281,7 @@ console.log("Selected Value Name: " + directoryPath);
             //Click action attached here
               this.command = {
                   command: "directoryChange",
-                  title: "Leaf clicked",
+                  title: "Directory Changed",
                   arguments: [label]
               };
 
