@@ -228,7 +228,7 @@ Save the json items as
             super(buttonName, vscode.TreeItemCollapsibleState.None);
 
 
-          //Button Behavour
+          //Button Behaviour
             this.command = {
                 command: commandId,
                 title: buttonName,
