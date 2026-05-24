@@ -131,7 +131,7 @@
 
 
           //[Revert the user's Deletion]
-            vscode.commands.registerCommand("revertDeletion", () => { SaveDirectory(removedDirectories.pop()); directoryProvider.refresh(); }),
+            vscode.commands.registerCommand("revertDeletion", () => { specificRemoveFlag = false; SaveDirectory(removedDirectories.pop()); directoryProvider.refresh(); }),
 
     
           //[Dropdown - Select Folder/Directory]
@@ -145,6 +145,9 @@
 
                   //Refresh the Dropdown object
                     directoryProvider.refresh();
+
+                  //Turn the flag off
+                    specificRemoveFlag = false;
 
                   //Do not continue
                     return;
@@ -289,10 +292,10 @@
 
 
                   //[Delete Current Directory]
-                    new Button("Delete Current Directory", "Click to Run", "deleteCurrentDirectory"),
+                    new Button("Delete Current Folder", "Click to Run", "deleteCurrentDirectory"),
 
-                  //[Delete Specific Directory]
-                    new Button("Delete Specific Directory", "Click to Run", "deleteSpecificDirectory"),
+                  //[Delete Specific Folder]
+                    new Button("Delete Specific Folder", "Click to Run", "deleteSpecificDirectory"),
 
                   //[Revert Deletion]
                     new Button("Revert Deletion", "Click to Run", "revertDeletion"),
@@ -321,7 +324,7 @@
       //Refresh the tree items
         refresh(){ this._onDidChangeTreeData.fire(); }
 
-      //Return the Leaf [i.e. Directory Names in Quick Select]
+      //Return the Leaf [i.e. Folder Names in Quick Select]
         getTreeItem(element){ return element; }
 
     }
@@ -352,14 +355,14 @@
           //Set up the icon for the button based on which type it is
           //===============================================================================================
 
-            //[Add Directory Button]
+            //[Add Folder Button]
               if(buttonName == "Save Current Folder Open"){ this.iconPath = new vscode.ThemeIcon("save"); }
 
-            //[Delete Specific Directory Button]
-              else if(buttonName == "Delete Specific Directory"){ this.iconPath = new vscode.ThemeIcon("dash"); }
+            //[Delete Specific Folder Button]
+              else if(buttonName == "Delete Specific Folder"){ this.iconPath = new vscode.ThemeIcon("dash"); }
 
-            //[Delete Current Directory Button]
-              else if(buttonName == "Delete Current Directory"){ this.iconPath = new vscode.ThemeIcon("x"); }
+            //[Delete Current Folder Button]
+              else if(buttonName == "Delete Current Folder"){ this.iconPath = new vscode.ThemeIcon("x"); }
 
             //[Revert Deletion Button]   (works for both types)
               else if(buttonName == "Revert Deletion"){ this.iconPath = new vscode.ThemeIcon("discard"); }
