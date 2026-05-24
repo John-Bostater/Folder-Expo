@@ -5,19 +5,20 @@
 
 [Description]:
 	Simple Extension for saving directories and opening them quickly via the Explorer's Side-Panel UI Interface.
+
+
+[TO DO!!]:
+
+  - Allow users to remove files by pressing a button which "arms" the deletion
+      when a user pressed one of the directories in the dropdown menu, it is deleted
+        (this may be kinda jankey, as the first click has to be right, or you'll delete a reference to the file)
+
+    ^^ With this being said, make a button that will revert any deletion that the user has made???!!
+
+
+  - Find a way to allow user's to input and save paths to other folders (not just save the current folder open
+
 */
-
-
-
-/*[TO DO!!]
-
-Save the json items as
-
-  Key : FolderName (last dir in full path name)  -  Value : Full path name to the directory
-
-*/
-
-
 
 
 
@@ -33,17 +34,32 @@ Save the json items as
   //Constants
     const userName = os.userInfo().username;
     const userJson = path.join("C:", "Users", userName, "AppData", "Roaming", "Code", "User", "globalStorage", "UserDirectoryData.json");
-    var directoryMap = new Map();
 
   //Variables
     var currentFolderPath = "";
     var allDirectoryNames = [];
+    var directoryMap = new Map();
+    var removedDirectories = [];
+    var specificRemoveFlag = false;
+
 //-------------------------------------------------------------------------------------------------------------------------------------
 
 
 
 //[Allocations]
 //-------------------------------------------------------------------------------------------------------------------------------
+
+  //[Gather the current folder path] (if one has opened)
+
+  //List of folders in the user's workspace
+    const folders = vscode.workspace.workspaceFolders;
+
+  //[Error Handling] No folder currently open
+    if(!folders || folders.length === 0) { vscode.window.showInformationMessage("[Error]: No folder is currently open."); return; }
+
+  //First folder in the current workspace
+    currentFolderPath = folders[0].uri.fsPath;
+
 
   //Search for the UserDirectoryData.json containing any saved directories the user has
 
@@ -130,6 +146,17 @@ Save the json items as
 
             }),
 
+
+//[NEW!!]
+
+          //[Remove the Current Directory from the Dropdown]
+          //    Call upon the function, pass our object as a parameter too 
+            vscode.commands.registerCommand("deleteCurrentDirectory", (directoryKeyName) => { RemoveNameFromDropdown(path.basename(currentFolderPath)); directoryProvider.refresh(); }),
+
+
+          //[Remove a specific file from the directory]
+
+
     
           //[Dropdown - Select Folder/Directory]
             vscode.commands.registerCommand("directoryChange", (directoryKeyName) => {
@@ -145,6 +172,55 @@ Save the json items as
             })
 
         )
+    }
+
+//-----------------------------------------------------------------------------------------------------------------------------
+
+
+
+//[Author-Defined Functions]
+//-----------------------------------------------------------------------------------------------------------------------------
+
+  //Delete the passed name from the list of folders
+    function RemoveNameFromDropdown(nameToRemove){
+
+//[TO DO!!]
+//  Later on use an array for saving the path(s) we have deleted 
+//   This is so everytime a user presses revert they can bring back multiple directories they have deleted
+//
+//  Extra points idea for making a json so if the user closes VS Code, they can still bring back deleted path(s) via revert)
+//   We will have to load the data from that json upon every load of the program though (for the extra points idea)
+
+      //Save a reference to the file path we are to delete (in case we need to bring it back)
+       if(!removedDirectories.includes(nameToRemove)){ removedDirectories.push(nameToRemove); }
+
+
+      //[Remove the reference from: UserDirectoryData.json]
+      //  Ensure file exists & that we are NOT writing a duplicate
+        if(fs.existsSync(userJson) && directoryMap.has(nameToRemove)){
+
+          //[Go to the map, delete the name]
+            directoryMap.delete(nameToRemove);
+
+          //[Remove from the array too]
+            allDirectoryNames.pop(nameToRemove);
+
+          //Convert Map -> Object
+            const pathObject = Object.fromEntries(directoryMap);
+
+          //Write the JSON file data
+            fs.writeFileSync(userJson, JSON.stringify(pathObject, null, 4));
+
+          //Inform the user' the directory has been removed
+            vscode.window.showInformationMessage(`Removing Folder from the Dropdown menu: [${nameToRemove}]`);
+        }
+
+      //Else, do nothing
+
+//[DEBUG!!]
+//  See all of the directories we have removed from the Dropdown
+console.log(removedDirectories);
+
     }
 
 //-----------------------------------------------------------------------------------------------------------------------------
@@ -185,8 +261,19 @@ Save the json items as
               //List of "Buttons" for the extension
                 return [
 
-                  //Input Box for user's to manually enter a folder via it's directory
+                  //[Save the Current Folder]
                     new Button("Save Current Folder Open", "Click to Run", "saveCurrentDirectory"),
+
+
+                  //[Delete Current Directory]
+                    new Button("Delete Current Directory", "Click to Run", "deleteCurrentDirectory"),
+
+                  //[Delete Specific Directory]
+                    new Button("Delete Specific Directory", "Click to Run", "deleteSpecificDirectory"),
+
+                  //[Revert Deletion]
+                    new Button("Revert Deletion", "Click to Run", "revertDeletion"),
+
 
                   //[Select Folder Drop Down List]
                     ...this.dropdowns.map( d => new DropdownItem(d.label, d.children) )
@@ -245,6 +332,17 @@ Save the json items as
 
             //[Add Directory Button]
               if(buttonName == "Save Current Folder Open"){ this.iconPath = new vscode.ThemeIcon("save"); }
+
+//[NEW!!]
+
+            //[Delete Specific Directory Button]
+              else if(buttonName == "Delete Specific Directory"){ this.iconPath = new vscode.ThemeIcon("dash"); }
+
+            //[Delete Current Directory Button]
+              else if(buttonName == "Delete Current Directory"){ this.iconPath = new vscode.ThemeIcon("x"); }
+
+            //[Revert Deletion Button]   (works for both types)
+              else if(buttonName == "Revert Deletion"){ this.iconPath = new vscode.ThemeIcon("discard"); }
 
           //===============================================================================================
 
