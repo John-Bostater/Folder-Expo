@@ -2,7 +2,7 @@
   "name": "folder-expo",
   "displayName": "Folder Expo",
   "publisher": "JohnBostater",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "main": "./extension.js",
 
   "engines": {
