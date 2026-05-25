@@ -13,6 +13,9 @@
 
   - Create a button that allows user's to sort their Dropdown by alphabetical order (A -> Z) or (Z -> A)
 
+  - Create a new JSON called,  [UserExpoSettings.json]  
+      which will hold a flag on whether or not the user would like all new directories added to be in alphabetical order
+
 */
 
 
@@ -29,6 +32,7 @@
   //Constants
     const userName = os.userInfo().username;
     const userJson = path.join("C:", "Users", userName, "AppData", "Roaming", "Code", "User", "globalStorage", "UserDirectoryData.json");
+    const userSettingsJson = path.join("C:", "Users", userName, "AppData", "Roaming", "Code", "User", "globalStorage", "UserExpoSettings.json");
 
   //Variables
     var currentFolderPath = "";
@@ -36,6 +40,11 @@
     var directoryMap = new Map();
     var removedDirectories = [];
     var specificRemoveFlag = false;
+
+
+//[TO DO]:
+//  Automatically organize the user's data everytime a new directory is added?
+    var organizedDataFlag = false;
 
 //-------------------------------------------------------------------------------------------------------------------------------------
 
@@ -57,23 +66,27 @@
 
 
   //Search for the UserDirectoryData.json containing any saved directories the user has
-
-  //[JSON exists, continue to collect data]
-    if(fs.existsSync(userJson)){
-
-      //Collect Raw data & then convert to JSON
-        const jsonData = JSON.parse(fs.readFileSync(userJson, "utf-8"));
-      
-      //Parse the JSON and collect all of the Directory names!
-        directoryMap = new Map(Object.entries(jsonData));
-
-      //Collect all of the directory names we can from the loaded data
-        for(const dirKey of directoryMap.keys()){ allDirectoryNames.push(dirKey) }
-
-    }
+    if(fs.existsSync(userJson)){ LoadUserData(); }
 
   //Else, create the JSON (everytime we save a directory we will use a simplified name (the last dir of the path))
     else{ fs.writeFileSync(userJson, ""); }
+
+
+//[TO DO!!]
+//   [Second Idea]:  Have this JSON also hold references to the directories the user has deleted
+//        (in-case user would like to revert after chaning their directory)
+
+  //[User Settings Data JSON Exists]
+    if(fs.existsSync(userSettingsJson)){
+
+      //Load the flag on whether the user would like to have saved folders automatically be organized (A-Z)
+        //Code here...
+
+    }
+
+  //Else, create the JSON for the user's saved preferenecs
+    else{ fs.writeFileSync(userSettingsJson, ""); }
+
 
 //-------------------------------------------------------------------------------------------------------------------------------
 
@@ -127,7 +140,12 @@
 
 
           //[Remove a specific file from the directory]
-            vscode.commands.registerCommand("deleteSpecificDirectory", (directoryKeyName) => { specificRemoveFlag = true; }),
+            vscode.commands.registerCommand("deleteSpecificDirectory", () => { specificRemoveFlag = true; }),
+
+//[NEW!!]
+          //[Sort Dropdown & JSON Alphabetically]  
+          //   (do this by default everytime a player enters a new directory? or check if the user has a flag to permanentaly have this)
+            vscode.commands.registerCommand("alphabeticOrganizeDirectory", () => { OrganizeJSON(); directoryProvider.refresh(); }),
 
 
           //[Revert the user's Deletion]
@@ -209,7 +227,7 @@
 
       //Else, the user is trying to save the same dir twice!, inform them
         vscode.window.showWarningMessage(`Current Folder is already Saved: [${passedFolderPath}]`);
-  }
+    }
 
 
   //[Delete the passed name from the list of folders]
@@ -249,6 +267,62 @@
 
     }
 
+
+//[NEW!!]
+  //[Organize the Dropdown Menu]
+    function OrganizeJSON(){
+
+      //Organize the JSON Data & refresh the local data from the new JSON
+
+
+      //Collect the JSON data to an array
+        const jsonData = JSON.parse(fs.readFileSync(userJson, "utf-8"));
+
+      //Map Data we need to organize
+        var unorganizedDataMap = new Map(Object.entries(jsonData));
+
+
+      //Organized Data via JavaScript's internal Map Object Method  { .sort()  &  locale.Compare() }
+        var organizedDataMap = new Map([...unorganizedDataMap].sort((a, b) => a[0].localeCompare(b[0])));
+
+      //Convert Organized Map -> Object
+        const pathObject = Object.fromEntries(organizedDataMap);
+
+      //Write the JSON file data
+        fs.writeFileSync(userJson, JSON.stringify(pathObject, null, 4));
+
+      //Empty the names to make way for the organized set
+        allDirectoryNames = [];
+
+
+      //Load the data the user has created
+        LoadUserData();
+
+    }
+
+
+
+//[NEW!!]
+
+  //[Load the user's Data from the JSON]
+    function LoadUserData(){
+      
+      //Collect Raw data & then convert to JSON
+        const jsonData = JSON.parse(fs.readFileSync(userJson, "utf-8"));
+      
+      //Parse the JSON and collect all of the Directory names!
+        directoryMap = new Map(Object.entries(jsonData));
+
+      //Collect all of the directory names we can from the loaded data
+        for(const dirKey of directoryMap.keys()){ allDirectoryNames.push(dirKey) }
+
+
+//[DEBUG!!]
+console.log("Dropdown Data Successfully loaded from the user's JSON: " + allDirectoryNames)
+
+    }
+
+
 //-----------------------------------------------------------------------------------------------------------------------------
 
 
@@ -266,7 +340,6 @@
             this._onDidChangeTreeData = new vscode.EventEmitter();
             this.onDidChangeTreeData = this._onDidChangeTreeData.event;
 
-
           //Dropdown Items for the Quick Theme Select
             this.dropdowns = [{
 
@@ -274,7 +347,7 @@
                 label: "Folder Expo",
                 children: allDirectoryNames
             }];
-
+        
         }
 
 
@@ -292,13 +365,19 @@
 
 
                   //[Delete Current Directory]
-                    new Button("Delete Current Folder", "Click to Run", "deleteCurrentDirectory"),
+                    new Button("Delete Current Folder", "", "deleteCurrentDirectory"),
 
                   //[Delete Specific Folder]
-                    new Button("Delete Specific Folder", "Click to Run", "deleteSpecificDirectory"),
+                    new Button("Delete Specific Folder", "", "deleteSpecificDirectory"),
+
+
+//[NEW!!]
+                  //[Sort the Dropdown Alphabetically]
+                    new Button("Organize Folders (A-Z)", "", "alphabeticOrganizeDirectory"),
+
 
                   //[Revert Deletion]
-                    new Button("Revert Deletion", "Click to Run", "revertDeletion"),
+                    new Button("Revert Deletion", "", "revertDeletion"),
 
 
                   //[Select Folder Drop Down List]
@@ -321,8 +400,8 @@
         }
 
 
-      //Refresh the tree items
-        refresh(){ this._onDidChangeTreeData.fire(); }
+      //Refresh the Dropdown List Items
+        refresh(){ this._onDidChangeTreeData.fire(); this.dropdowns[0].children = allDirectoryNames; }
 
       //Return the Leaf [i.e. Folder Names in Quick Select]
         getTreeItem(element){ return element; }
@@ -353,7 +432,7 @@
 
 
           //Set up the icon for the button based on which type it is
-          //===============================================================================================
+          //======================================================================================================
 
             //[Add Folder Button]
               if(buttonName == "Save Current Folder Open"){ this.iconPath = new vscode.ThemeIcon("save"); }
@@ -364,10 +443,17 @@
             //[Delete Current Folder Button]
               else if(buttonName == "Delete Current Folder"){ this.iconPath = new vscode.ThemeIcon("x"); }
 
+//[NEW!!]
+            //[Organize Folders Button]
+              else if(buttonName == "Organize Folders (A-Z)"){ this.iconPath = new vscode.ThemeIcon("book"); }
+//              else if(buttonName == "Organize Folders (A-Z)"){ this.iconPath = new vscode.ThemeIcon("archive"); }
+//              else if(buttonName == "Organize Folders (A-Z)"){ this.iconPath = new vscode.ThemeIcon("bookmark"); }
+
+
             //[Revert Deletion Button]   (works for both types)
               else if(buttonName == "Revert Deletion"){ this.iconPath = new vscode.ThemeIcon("discard"); }
 
-          //===============================================================================================
+          //======================================================================================================
 
         }
     }
