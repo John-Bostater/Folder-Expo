@@ -9,9 +9,9 @@
 
 [TO DO!!]:
 
-  - Find a way to allow user's to input and save paths to other folders (not just save the current folder open
+  - Find a way to allow user's to input and save paths to other folders (not just save the current folder open)
 
-  - Create a button that allows user's to sort their Dropdown by alphabetical order (A -> Z) or (Z -> A)
+  - Automatically organize the user's data alphabetically everytime a new directory is added?
 
   - Create a new JSON called,  [UserExpoSettings.json]  
       which will hold a flag on whether or not the user would like all new directories added to be in alphabetical order
@@ -40,10 +40,6 @@
     var directoryMap = new Map();
     var removedDirectories = [];
     var specificRemoveFlag = false;
-
-
-//[TO DO]:
-//  Automatically organize the user's data everytime a new directory is added?
     var organizedDataFlag = false;
 
 //-------------------------------------------------------------------------------------------------------------------------------------
@@ -53,23 +49,22 @@
 //[Allocations]
 //-------------------------------------------------------------------------------------------------------------------------------
 
-  //[Gather the current folder path] (if one has opened)
-
-  //List of folders in the user's workspace
-    const folders = vscode.workspace.workspaceFolders;
-
-  //[Error Handling] No folder currently open
-    if(!folders || folders.length === 0) { vscode.window.showInformationMessage("[Error]: No folder is currently open."); return; }
-
-  //First folder in the current workspace
-    currentFolderPath = folders[0].uri.fsPath;
-
 
   //Search for the UserDirectoryData.json containing any saved directories the user has
     if(fs.existsSync(userJson)){ LoadUserData(); }
 
   //Else, create the JSON (everytime we save a directory we will use a simplified name (the last dir of the path))
     else{ fs.writeFileSync(userJson, ""); }
+
+
+  //[Gather the current folder path] (if one has opened)
+
+  //List of folders in the user's workspace
+    const folders = vscode.workspace.workspaceFolders;
+
+  //[Collect the current folder path (if one is open)]
+    if(folders) { if(folders.length != 0) currentFolderPath = folders[0].uri.fsPath; console.log(`Current folder Name: ${path.basename(currentFolderPath)}`); }
+
 
 
 //[TO DO!!]
@@ -142,7 +137,7 @@
           //[Remove a specific file from the directory]
             vscode.commands.registerCommand("deleteSpecificDirectory", () => { specificRemoveFlag = true; }),
 
-//[NEW!!]
+
           //[Sort Dropdown & JSON Alphabetically]  
           //   (do this by default everytime a player enters a new directory? or check if the user has a flag to permanentaly have this)
             vscode.commands.registerCommand("alphabeticOrganizeDirectory", () => { OrganizeJSON(); directoryProvider.refresh(); }),
@@ -268,7 +263,6 @@
     }
 
 
-//[NEW!!]
   //[Organize the Dropdown Menu]
     function OrganizeJSON(){
 
@@ -301,9 +295,6 @@
     }
 
 
-
-//[NEW!!]
-
   //[Load the user's Data from the JSON]
     function LoadUserData(){
       
@@ -315,10 +306,6 @@
 
       //Collect all of the directory names we can from the loaded data
         for(const dirKey of directoryMap.keys()){ allDirectoryNames.push(dirKey) }
-
-
-//[DEBUG!!]
-console.log("Dropdown Data Successfully loaded from the user's JSON: " + allDirectoryNames)
 
     }
 
@@ -371,7 +358,6 @@ console.log("Dropdown Data Successfully loaded from the user's JSON: " + allDire
                     new Button("Delete Specific Folder", "", "deleteSpecificDirectory"),
 
 
-//[NEW!!]
                   //[Sort the Dropdown Alphabetically]
                     new Button("Organize Folders (A-Z)", "", "alphabeticOrganizeDirectory"),
 
@@ -443,12 +429,8 @@ console.log("Dropdown Data Successfully loaded from the user's JSON: " + allDire
             //[Delete Current Folder Button]
               else if(buttonName == "Delete Current Folder"){ this.iconPath = new vscode.ThemeIcon("x"); }
 
-//[NEW!!]
             //[Organize Folders Button]
               else if(buttonName == "Organize Folders (A-Z)"){ this.iconPath = new vscode.ThemeIcon("book"); }
-//              else if(buttonName == "Organize Folders (A-Z)"){ this.iconPath = new vscode.ThemeIcon("archive"); }
-//              else if(buttonName == "Organize Folders (A-Z)"){ this.iconPath = new vscode.ThemeIcon("bookmark"); }
-
 
             //[Revert Deletion Button]   (works for both types)
               else if(buttonName == "Revert Deletion"){ this.iconPath = new vscode.ThemeIcon("discard"); }
