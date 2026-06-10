@@ -16,6 +16,9 @@
   - Create a new JSON called,  [UserExpoSettings.json]  
       which will hold a flag on whether or not the user would like all new directories added to be in alphabetical order
 
+  - Make a json so if the user closes VS Code, they can still bring back any previously deleted path(s) via the revert button)
+      We will have to load the data from that json upon every load of the program to the "removedDirectorys" array
+        You should store up to 5 or 10 reverts within this JSON if you do pursue this idea
 */
 
 
@@ -348,7 +351,7 @@
                 return [
 
                   //[Save the Current Folder]
-                    new Button("Save Current Folder Open", "Click to Run", "saveCurrentDirectory"),
+                    new Button("Save Current Folder Open", "", "saveCurrentDirectory"),
 
 
                   //[Delete Current Directory]

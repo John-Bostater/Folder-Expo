@@ -10,11 +10,11 @@ Explorer UI based VS Code Extension for quickly switching between folders.
 <!--
 [TO DO:]
 	Shoot an updated demo video when you get the chance!
--->
 
 ### New Functionality (Version: 0.1.0+ )
 ![Preview](VideoDemo0.gif)
 
+-->
 
 
 ## Why I created this
