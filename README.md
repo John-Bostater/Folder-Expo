@@ -1,6 +1,7 @@
 ## Folder Expo
 Explorer UI based VS Code Extension for quickly switching between folders.
 
+
 ## Video Demonstration
 
 ### Saving & Loading a new Folder (Older Version Demo)
