@@ -52,22 +52,14 @@
 //[Allocations]
 //-------------------------------------------------------------------------------------------------------------------------------
 
-
-  //Search for the UserDirectoryData.json containing any saved directories the user has
-    if(fs.existsSync(userJson)){ LoadUserData(); }
-
-  //Else, create the JSON (everytime we save a directory we will use a simplified name (the last dir of the path))
-    else{ fs.writeFileSync(userJson, ""); }
-
-
-  //[Gather the current folder path] (if one has opened)
+  //[Create the data JSON if it DNE] (everytime we save a directory it will store here & we will use a simplified name (the last dir of the path))
+    if(!fs.existsSync(userJson)){ fs.writeFileSync(userJson, ""); }
 
   //List of folders in the user's workspace
     const folders = vscode.workspace.workspaceFolders;
 
   //[Collect the current folder path (if one is open)]
     if(folders) { if(folders.length != 0) currentFolderPath = folders[0].uri.fsPath; console.log(`Current folder Name: ${path.basename(currentFolderPath)}`); }
-
 
 
 //[TO DO!!]
@@ -96,11 +88,17 @@
   //[Runs upon Activation of the Extension]
     function activate(context) {
 
+
       //Reference to the provider of Changing our directory/folder
         const directoryProvider = new DirectoryChanger();
 
       //Register the Extension to the Side-Panel tree
         vscode.window.registerTreeDataProvider("folderExpo", directoryProvider );
+
+
+      //If the user currently has a folder open edit the name of the saved dir under the same name in the JSON file & reload data
+      //  JSON file referring to:  { UserDirectoryData.json }
+        LoadUserData();
 
 
       //[Action Event Handling - All Items]
@@ -202,8 +200,12 @@
       //  Ensure file exists & that we are NOT writing a duplicate
         if(fs.existsSync(userJson) && !directoryMap.has(path.basename(passedFolderPath))){
 
-          //Update the folder/directory list items for the extension object
-            allDirectoryNames.push(path.basename(passedFolderPath));
+
+          //If the Folder/Directory being saved is the currently opened one, update the name
+            if(path.basename(passedFolderPath) == path.basename(currentFolderPath)){ allDirectoryNames.push("\[" + path.basename(passedFolderPath)+ "\]"); }
+
+          //Else, Update the folder/directory list items for the extension object
+            else{ allDirectoryNames.push(path.basename(passedFolderPath)); }
 
 
           //Create a new entry in the map and write the data to a json
@@ -239,17 +241,20 @@
 
       //[Remove the reference from: UserDirectoryData.json]
       //  Ensure file exists & that we are NOT writing a duplicate
-        if(fs.existsSync(userJson) && directoryMap.has(nameToRemove)){
+        if(fs.existsSync(userJson) && directoryMap.has(nameToRemove) || directoryMap.has("\[" + nameToRemove + "\]")){
 
           //Save a reference to the file path we are to delete (in case we need to bring it back)
-            if(directoryMap.has(nameToRemove)){ removedDirectories.push(directoryMap.get(nameToRemove)); }
-
+            removedDirectories.push(directoryMap.get(nameToRemove));
 
           //[Go to the map, delete the name]
             directoryMap.delete(nameToRemove);
 
           //[Remove from the array too]
-            allDirectoryNames.splice(allDirectoryNames.indexOf(nameToRemove), 1);
+          // Deleting currently opened folder
+            if(allDirectoryNames.includes("\[" + nameToRemove + "\]")){ allDirectoryNames.splice(allDirectoryNames.indexOf("\["+ nameToRemove + "\]"), 1); }
+
+          // Else, regular folder deletion
+            else{ allDirectoryNames.splice(allDirectoryNames.indexOf(nameToRemove), 1); }
 
           //Convert Map -> Object
             const pathObject = Object.fromEntries(directoryMap);
@@ -308,10 +313,17 @@
         directoryMap = new Map(Object.entries(jsonData));
 
       //Collect all of the directory names we can from the loaded data
-        for(const dirKey of directoryMap.keys()){ allDirectoryNames.push(dirKey) }
+        for(const dirKey of directoryMap.keys()){ 
+
+          //[The directory saved/parsed is the same as the one currently open, save with formatting]
+            if(path.basename(currentFolderPath) === dirKey){ allDirectoryNames.push(`\[${dirKey}\]`); }
+
+          //[Else, Save the name normally]
+            else{ allDirectoryNames.push(dirKey); }
+
+        }
 
     }
-
 
 //-----------------------------------------------------------------------------------------------------------------------------
 
