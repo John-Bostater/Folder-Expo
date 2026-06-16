@@ -202,7 +202,7 @@
 
 
           //If the Folder/Directory being saved is the currently opened one, update the name
-            if(path.basename(passedFolderPath) == path.basename(currentFolderPath)){ allDirectoryNames.push("\[" + path.basename(passedFolderPath)+ "\]"); }
+            if(path.basename(passedFolderPath) == path.basename(currentFolderPath)){ allDirectoryNames.push(CurrentFolderFormatting(path.basename(passedFolderPath))); }
 
           //Else, Update the folder/directory list items for the extension object
             else{ allDirectoryNames.push(path.basename(passedFolderPath)); }
@@ -234,14 +234,15 @@
   //    nameToRemove is the basename of the path we want to delete
     function RemoveDirectory(nameToRemove){
 
+
 //[TO DO!!]
 // Make a json so if the user closes VS Code, they can still bring back deleted path(s) via revert)
 //   We will have to load the data from that json upon every load of the program to the "removedDirectorys" array
-
+//    This would be done in the code space below
 
       //[Remove the reference from: UserDirectoryData.json]
       //  Ensure file exists & that we are NOT writing a duplicate
-        if(fs.existsSync(userJson) && directoryMap.has(nameToRemove) || directoryMap.has("\[" + nameToRemove + "\]")){
+        if(fs.existsSync(userJson) && directoryMap.has(nameToRemove) || directoryMap.has(CurrentFolderFormatting(nameToRemove))){
 
           //Save a reference to the file path we are to delete (in case we need to bring it back)
             removedDirectories.push(directoryMap.get(nameToRemove));
@@ -251,7 +252,7 @@
 
           //[Remove from the array too]
           // Deleting currently opened folder
-            if(allDirectoryNames.includes("\[" + nameToRemove + "\]")){ allDirectoryNames.splice(allDirectoryNames.indexOf("\["+ nameToRemove + "\]"), 1); }
+            if(allDirectoryNames.includes(CurrentFolderFormatting(nameToRemove))){ allDirectoryNames.splice(allDirectoryNames.indexOf(CurrentFolderFormatting(nameToRemove)), 1); }
 
           // Else, regular folder deletion
             else{ allDirectoryNames.splice(allDirectoryNames.indexOf(nameToRemove), 1); }
@@ -316,7 +317,7 @@
         for(const dirKey of directoryMap.keys()){ 
 
           //[The directory saved/parsed is the same as the one currently open, save with formatting]
-            if(path.basename(currentFolderPath) === dirKey){ allDirectoryNames.push(`\[${dirKey}\]`); }
+            if(path.basename(currentFolderPath) == dirKey){ allDirectoryNames.push(CurrentFolderFormatting(dirKey)); }
 
           //[Else, Save the name normally]
             else{ allDirectoryNames.push(dirKey); }
@@ -324,6 +325,10 @@
         }
 
     }
+
+
+  //[Dropdown Formatting for the Currently Opened Folder]
+    function CurrentFolderFormatting(nameToFormat){ return `[ ${nameToFormat} ]`; }
 
 //-----------------------------------------------------------------------------------------------------------------------------
 
