@@ -19,6 +19,16 @@
   - Make a json so if the user closes VS Code, they can still bring back any previously deleted path(s) via the revert button)
       We will have to load the data from that json upon every load of the program to the "removedDirectorys" array
         You should store up to 5 or 10 reverts within this JSON if you do pursue this idea
+
+
+[NEW IDEA]: 
+
+  - Allow a user to save the current file they have open should they like to quickly open it from another folder/project quickly
+
+  - Save the latest Folder the user has opened so they can quickly go back (do this when a new folder is opened)
+      save/write this to the JSON so we can Always have access/be able to open the last folder the user has visited/opened
+        (Create a Star Icon button to load this folder, have notification of the new folder's name)
+
 */
 
 
@@ -370,24 +380,28 @@
                   //[Save the Current Folder]
                     new Button("Save Current Folder Open", "", "saveCurrentDirectory"),
 
-
                   //[Delete Current Directory]
-                    new Button("Delete Current Folder", "", "deleteCurrentDirectory"),
+                    new Button("Delete Current Folder Open", "", "deleteCurrentDirectory"),
 
                   //[Delete Specific Folder]
                     new Button("Delete Specific Folder", "", "deleteSpecificDirectory"),
 
-
                   //[Sort the Dropdown Alphabetically]
                     new Button("Organize Folders (A-Z)", "", "alphabeticOrganizeDirectory"),
-
 
                   //[Revert Deletion]
                     new Button("Revert Deletion", "", "revertDeletion"),
 
+//[TO DO!!]
+//  Implement the following below, do so by checking if there is currently a folder opened & save it's name if it is & there is not already a name saved.
+//    Save the name either when the user switches to another folder via the Extension (double-clicking folder name) or when the user closes/shutdowns the program or other methods (if possible)
+
+                  //[Open Last Folder Visited Deletion]
+                    //new Button("Open Latest Folder", "", "latestFolderOpened"),
 
                   //[Select Folder Drop Down List]
                     ...this.dropdowns.map( d => new DropdownItem(d.label, d.children) )
+
                 ];
            
             }
@@ -431,6 +445,7 @@
                 command: commandId,
                 title: buttonName,
                 arguments: [this]
+
             };
 
           //Button Description
@@ -447,13 +462,20 @@
               else if(buttonName == "Delete Specific Folder"){ this.iconPath = new vscode.ThemeIcon("dash"); }
 
             //[Delete Current Folder Button]
-              else if(buttonName == "Delete Current Folder"){ this.iconPath = new vscode.ThemeIcon("x"); }
+              else if(buttonName == "Delete Current Folder Open"){ this.iconPath = new vscode.ThemeIcon("x"); }
 
             //[Organize Folders Button]
               else if(buttonName == "Organize Folders (A-Z)"){ this.iconPath = new vscode.ThemeIcon("book"); }
 
             //[Revert Deletion Button]   (works for both types)
               else if(buttonName == "Revert Deletion"){ this.iconPath = new vscode.ThemeIcon("discard"); }
+
+
+//[TO DO!!]
+//  Uncomment when building/implementing the new functionality
+
+            //[Open Last Folder Visited]
+              //else if(buttonName == "Open Latest Folder"){ this.iconPath = new vscode.ThemeIcon("arrow-left"); }
 
           //======================================================================================================
 
