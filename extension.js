@@ -20,15 +20,6 @@
       We will have to load the data from that json upon every load of the program to the "removedDirectorys" array
         You should store up to 5 or 10 reverts within this JSON if you do pursue this idea
 
-
-[NEW IDEA]: 
-
-  - Allow a user to save the current file they have open should they like to quickly open it from another folder/project quickly
-
-  - Save the latest Folder the user has opened so they can quickly go back (do this when a new folder is opened)
-      save/write this to the JSON so we can Always have access/be able to open the last folder the user has visited/opened
-        (Create a Star Icon button to load this folder, have notification of the new folder's name)
-
 */
 
 
@@ -46,6 +37,7 @@
     const userName = os.userInfo().username;
     const userJson = path.join("C:", "Users", userName, "AppData", "Roaming", "Code", "User", "globalStorage", "UserDirectoryData.json");
     const userSettingsJson = path.join("C:", "Users", userName, "AppData", "Roaming", "Code", "User", "globalStorage", "UserExpoSettings.json");
+    const lastFolderVisitedTxt = path.join("C:", "Users", userName, "AppData", "Roaming", "Code", "User", "globalStorage", "LastFolderVisited.txt");
 
   //Variables
     var currentFolderPath = "";
@@ -146,7 +138,11 @@
 
 
           //[Remove a specific file from the directory]
-            vscode.commands.registerCommand("deleteSpecificDirectory", () => { specificRemoveFlag = true; }),
+            vscode.commands.registerCommand("deleteSpecificDirectory", () => { specificRemoveFlag = true; vscode.window.showInformationMessage("*Next Folder Clicked upon will be Deleted");}),
+
+
+          //[Revert the user's Deletion]
+            vscode.commands.registerCommand("revertDeletion", () => { specificRemoveFlag = false; SaveDirectory(removedDirectories.pop()); directoryProvider.refresh(); }),
 
 
           //[Sort Dropdown & JSON Alphabetically]  
@@ -154,8 +150,29 @@
             vscode.commands.registerCommand("alphabeticOrganizeDirectory", () => { OrganizeJSON(); directoryProvider.refresh(); }),
 
 
-          //[Revert the user's Deletion]
-            vscode.commands.registerCommand("revertDeletion", () => { specificRemoveFlag = false; SaveDirectory(removedDirectories.pop()); directoryProvider.refresh(); }),
+//[NEW!!]
+          //[Open the Latest Folder Visited ('Visited' meaning opened/visited via the Extension)]
+            vscode.commands.registerCommand("latestFolderOpened", () => {
+
+              //Open the JSON file containing the data (just a single item that being the name of the )
+                if(fs.existsSync(lastFolderVisitedTxt)){
+
+                  //Capture the FilePath
+                    const filePath = fs.readFileSync(lastFolderVisitedTxt, 'utf-8');
+
+                  //Inform the user of their choice
+                    vscode.window.showInformationMessage(`Switching to Folder: [${fs.readFileSync(lastFolderVisitedTxt)}]`);
+
+//[LEFT OFF HERE!!]
+                  //Call upon the Function for saving the current folder open (if one is opened),  lastFolderVisitedTxt
+                    SaveCurrentFolderAsLastVisited();
+
+                  //Execute a command to change the user's window
+                    vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(filePath), { forceNewWindow: false } );
+
+                }
+
+            }),
 
     
           //[Dropdown - Select Folder/Directory]
@@ -180,13 +197,21 @@
 
 
               //Use the map to find the folder path connected to the directory's name
-                directoryPath = directoryMap.get(directoryKeyName);
+                var directoryPath = directoryMap.get(directoryKeyName);
+
+//[NEW!!]
+//  Save the folder (so the user can reopen via 'Last Folder Opened')
+
+              //Call upon method for saving the currently opened folder as the last visited
+                SaveCurrentFolderAsLastVisited();
+
+
+              //Inform the user of their choice
+                vscode.window.showInformationMessage(`Switching to Folder: [${directoryKeyName}]`);
 
               //Execute a command to change the user's window
                 vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(directoryPath), { forceNewWindow: false } );
 
-              //Inform the user of their choice
-                vscode.window.showInformationMessage(`Switching to Folder: [${directoryKeyName}]`);
             })
 
         )
@@ -340,6 +365,26 @@
   //[Dropdown Formatting for the Currently Opened Folder]
     function CurrentFolderFormatting(nameToFormat){ return `[ ${nameToFormat} ]`; }
 
+
+  //[Save the Current folder Opened as 'lastVisitedFolder']
+    function SaveCurrentFolderAsLastVisited(){
+
+      //Save the current directory open
+        const folders = vscode.workspace.workspaceFolders;
+
+      //[Return case]  (No Folder Opened)
+        if(!folders){ return; }
+
+
+      //First folder in the current workspace
+        currentFolderPath = folders[0].uri.fsPath;
+
+      //Create/Rewrite the file containing the Last Folder Visited (via the Extension)
+        fs.writeFileSync(lastFolderVisitedTxt, currentFolderPath);
+
+    }
+
+
 //-----------------------------------------------------------------------------------------------------------------------------
 
 
@@ -386,18 +431,20 @@
                   //[Delete Specific Folder]
                     new Button("Delete Specific Folder", "", "deleteSpecificDirectory"),
 
+                  //[Revert Deletion]
+                    new Button("Revert Deletion", "", "revertDeletion"),
+
                   //[Sort the Dropdown Alphabetically]
                     new Button("Organize Folders (A-Z)", "", "alphabeticOrganizeDirectory"),
 
-                  //[Revert Deletion]
-                    new Button("Revert Deletion", "", "revertDeletion"),
+//[NEW!!]
 
 //[TO DO!!]
 //  Implement the following below, do so by checking if there is currently a folder opened & save it's name if it is & there is not already a name saved.
 //    Save the name either when the user switches to another folder via the Extension (double-clicking folder name) or when the user closes/shutdowns the program or other methods (if possible)
 
                   //[Open Last Folder Visited Deletion]
-                    //new Button("Open Latest Folder", "", "latestFolderOpened"),
+                    new Button("Open Last Folder Visited", "", "latestFolderOpened"),
 
                   //[Select Folder Drop Down List]
                     ...this.dropdowns.map( d => new DropdownItem(d.label, d.children) )
@@ -475,7 +522,7 @@
 //  Uncomment when building/implementing the new functionality
 
             //[Open Last Folder Visited]
-              //else if(buttonName == "Open Latest Folder"){ this.iconPath = new vscode.ThemeIcon("arrow-left"); }
+              else if(buttonName == "Open Last Folder Visited"){ this.iconPath = new vscode.ThemeIcon("arrow-left"); }
 
           //======================================================================================================
 
