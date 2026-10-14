@@ -150,7 +150,6 @@
             vscode.commands.registerCommand("alphabeticOrganizeDirectory", () => { OrganizeJSON(); directoryProvider.refresh(); }),
 
 
-//[NEW!!]
           //[Open the Latest Folder Visited ('Visited' meaning opened/visited via the Extension)]
             vscode.commands.registerCommand("latestFolderOpened", () => {
 
@@ -163,7 +162,6 @@
                   //Inform the user of their choice
                     vscode.window.showInformationMessage(`Switching to Folder: [${fs.readFileSync(lastFolderVisitedTxt)}]`);
 
-//[LEFT OFF HERE!!]
                   //Call upon the Function for saving the current folder open (if one is opened),  lastFolderVisitedTxt
                     SaveCurrentFolderAsLastVisited();
 
@@ -199,8 +197,6 @@
               //Use the map to find the folder path connected to the directory's name
                 var directoryPath = directoryMap.get(directoryKeyName);
 
-//[NEW!!]
-//  Save the folder (so the user can reopen via 'Last Folder Opened')
 
               //Call upon method for saving the currently opened folder as the last visited
                 SaveCurrentFolderAsLastVisited();
@@ -516,10 +512,6 @@
 
             //[Revert Deletion Button]   (works for both types)
               else if(buttonName == "Revert Deletion"){ this.iconPath = new vscode.ThemeIcon("discard"); }
-
-
-//[TO DO!!]
-//  Uncomment when building/implementing the new functionality
 
             //[Open Last Folder Visited]
               else if(buttonName == "Open Last Folder Visited"){ this.iconPath = new vscode.ThemeIcon("arrow-left"); }
