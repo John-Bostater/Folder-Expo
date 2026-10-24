@@ -1,12 +1,14 @@
-## Folder Expo
-Explorer UI based VS Code Extension for quickly switching between folders.
+# **Folder Expo**
+VS Code Explorer-Based Extension for quickly switching between & managing folders.
+
+<br>
 
 
-## Video Demonstration
+## **Video Demonstrations**
 
-### Saving & Loading a new Folder (Older Version Demo)
+### Saving & Loading a new Folder &nbsp;&nbsp;&nbsp; (**Version 0.0.1** *Older*)
+
 ![Preview](VideoDemo.gif)
-
 
 <!--
 [TO DO:]
@@ -35,8 +37,29 @@ Explorer UI based VS Code Extension for quickly switching between folders.
 -->
 
 
+*Updated Video Demonstrations Coming Soon!*
+
+<br>
+
+
+## **Screenshot of Updated Functionality**
+
+### Program Functionality &nbsp;&nbsp;&nbsp; (**Version 0.5.0** *Latest*)
+![Preview](UpdatedFunctionality.png)
+
+<br>
+
+
+## Questions & Annwers
+
+ Does **Delete Current Folder Open** &nbsp; and &nbsp; **Delete Specific Folder** mean those folders will be deleted from my computer?
+
+- **No**  &nbsp; *Delete Current Folder Open* &nbsp; and &nbsp; *Delete Specific Folder*  means to Add or remove the folder's reference to the Dropdown list 'Folder Expo'. <br>
+It won't actually delete those folders from your computer itself (Some clarification for those who are unsure)
+
+<br>
 
 
 ## Why I created this
-	I like to have extensions within the Explorer View & I find project managers to be helpful.
-	There does not appear to be a similar extension on the marketplace (that I can find), so I made my own.
+I like to have extensions within the Explorer View & I find project managers to be helpful. <br>
+There does not appear to be a similar extension on the marketplace (that I can find) so I made my own.

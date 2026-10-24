@@ -138,7 +138,15 @@
 
 
           //[Remove a specific file from the directory]
-            vscode.commands.registerCommand("deleteSpecificDirectory", () => { specificRemoveFlag = true; vscode.window.showInformationMessage("*Next Folder Clicked upon will be Deleted");}),
+            vscode.commands.registerCommand("deleteSpecificDirectory", () => {
+
+              //[Turn ON the Flag to remove the next Folder Clicked upon]
+                if(!specificRemoveFlag){ specificRemoveFlag = true; vscode.window.showInformationMessage("*Next Folder Clicked upon will be DELETED"); }
+
+              //[Else, turn OFF the flag]
+                else{ specificRemoveFlag = false; vscode.window.showInformationMessage("*Next Folder Clicked upon will be OPENED"); }
+
+            }),
 
 
           //[Revert the user's Deletion]
