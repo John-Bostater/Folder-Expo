@@ -1,5 +1,5 @@
 # **Folder Expo**
-VS Code Explorer-Based Extension for quickly switching between & managing folders.
+VS Code Explorer-Based Extension for quickly switching between folders & managing folder references.
 
 <br>
 
@@ -50,7 +50,7 @@ VS Code Explorer-Based Extension for quickly switching between & managing folder
 <br>
 
 
-## Questions & Annwers
+## Questions & Answers
 
  Does **Delete Current Folder Open** &nbsp; and &nbsp; **Delete Specific Folder** mean those folders will be deleted from my computer?
 
